@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"complex": "cpp",
+			"cmath": "cpp",
+			"ccomplex": "cpp",
+			"new": "cpp"
+		}
+	}
+}
