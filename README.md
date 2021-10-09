@@ -1,2 +1,4 @@
 # M5Paper_FactoryTest
-PlatformIO Project for M5Paper
+Project for M5Paper
+
+* includes additional apps (GUI-Tests, BASIC)
