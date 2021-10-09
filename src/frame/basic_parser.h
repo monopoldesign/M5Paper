@@ -23,6 +23,7 @@ void next_statement();
 void let_statement();
 void update_statement();
 void circle_statement();
+void rect_statement();
 
 void jump_linenum(int linenum);
 void jump_linenum_slow(int linenum);

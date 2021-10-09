@@ -312,6 +312,50 @@ void circle_statement()
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
+void rect_statement()
+{
+	uint16_t x = 0, y = 0, w = 0, h = 0, c = 0;
+
+	accept(TOKENIZER_RECT);
+
+	// get x
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+		x = expr();
+
+	accept(TOKENIZER_COMMA);
+
+	// get y
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+		y = expr();
+
+	accept(TOKENIZER_COMMA);
+
+	// get width
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+		w = expr();
+
+	accept(TOKENIZER_COMMA);
+
+	// get height
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+		h = expr();
+
+	accept(TOKENIZER_COMMA);
+
+	// get color
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+		c = expr();
+
+	if (tokenizer_token() == TOKENIZER_CR)
+		accept(TOKENIZER_CR);
+	else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
+		ended = 1;
+
+	canvas_basic->drawRect(x, y, w, h, c);
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 void jump_linenum(int linenum)
 {
 	const char *pos = index_find(linenum);
@@ -382,6 +426,9 @@ void statement()
 			break;
 		case TOKENIZER_CIRCLE:
 			circle_statement();
+			break;
+		case TOKENIZER_RECT:
+			rect_statement();
 			break;
 		case TOKENIZER_END:
 			end_statement();
