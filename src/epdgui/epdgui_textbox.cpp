@@ -173,7 +173,7 @@ void EPDGUI_Textbox::UpdateState(int16_t x, int16_t y)
 		if (_textbox_touching_id != _id)
 			state = EVENT_NONE;
 
-		if (buttonL || buttonR ||buttonP)
+		if (buttonL || buttonR || buttonP)
 			UpdateButton();
 	}
 
@@ -189,26 +189,16 @@ void EPDGUI_Textbox::UpdateState(int16_t x, int16_t y)
 
 void EPDGUI_Textbox::UpdateButton()
 {
-	if (buttonL)
+	if (_cursorPos > 0 && buttonL)
 	{
-		buttonL = 0;
-
-		if (_cursorPos > 0)
-		{
-			_cursorPos--;
-			Draw(UPDATE_MODE_A2);
-		}
+		_cursorPos--;
+		Draw(UPDATE_MODE_A2);
 	}
 
-	if (buttonR)
+	if (_cursorPos < _data.length() && buttonR)
 	{
-		buttonR = 0;
-
-		if (_cursorPos < _data.length())
-		{
-			_cursorPos++;
-			Draw(UPDATE_MODE_A2);
-		}
+		_cursorPos++;
+		Draw(UPDATE_MODE_A2);
 	}
 
 	if (buttonP)

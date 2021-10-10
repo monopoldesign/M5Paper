@@ -102,15 +102,27 @@ void EPDGUI_Run(Frame_Base* frame)
 		}
 
 		M5.update();
-		if (M5.BtnL.wasPressed())
+		if (M5.BtnL.isPressed())
 		{
 			buttonL = 1;
 			EPDGUI_Process();
 		}
 
-		if (M5.BtnR.wasPressed())
+		if (M5.BtnL.wasReleased())
+		{
+			buttonL = 0;
+			EPDGUI_Process();
+		}
+
+		if (M5.BtnR.isPressed())
 		{
 			buttonR = 1;
+			EPDGUI_Process();
+		}
+
+		if (M5.BtnR.wasReleased())
+		{
+			buttonR = 0;
 			EPDGUI_Process();
 		}
 

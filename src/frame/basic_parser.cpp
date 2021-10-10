@@ -257,11 +257,25 @@ void next_statement(bool action)
 		else
 		{
 			for_stack_ptr--;
-			accept(TOKENIZER_CR);
+			if (tokenizer_token() == TOKENIZER_CR)
+				accept(TOKENIZER_CR);
+			else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
+			{
+				canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
+				ended = 1;
+			}
 		}
 	}
 	else
-		accept(TOKENIZER_CR);
+	{
+		if (tokenizer_token() == TOKENIZER_CR)
+			accept(TOKENIZER_CR);
+		else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
+		{
+			canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
+			ended = 1;
+		}
+	}
 }
 
 // ------------------------------------------------------------------------------
@@ -659,6 +673,10 @@ void accept(int token)
 {
 	if (token != tokenizer_token())
 	{
+		Serial.print("Token expected: ");
+		Serial.println(token);
+		Serial.print("current Token: ");
+		Serial.println(tokenizer_token());
 		String error = "SYNTAX ERROR ON LINE" + String(line_index_current->line_number);
 		canvas_basic->println(error);
 		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
