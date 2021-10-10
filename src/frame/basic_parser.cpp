@@ -569,6 +569,14 @@ int factor()
 				r = expr();
 				accept(TOKENIZER_RIGHTPAREN);
 				break;
+			case TOKENIZER_RANDOM:
+				Serial.println("Random detected");
+				accept(TOKENIZER_RANDOM);
+				accept(TOKENIZER_LEFTPAREN);
+				r = random(tokenizer_num());
+				accept(TOKENIZER_NUMBER);
+				accept(TOKENIZER_RIGHTPAREN);
+				break;
 			default:
 				r = varfactor();
 				break;
