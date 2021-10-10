@@ -304,19 +304,6 @@ void if_statement(bool action)
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void else_statement()
-{
-	// skip THEN branch
-	accept(TOKENIZER_THEN);
-	statement(false);
-
-	// do ELSE branch
-	accept(TOKENIZER_ELSE);
-	statement(true);
-}
-
-// ------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------
 void then_statement()
 {
 	// do THEN branch
@@ -329,6 +316,20 @@ void then_statement()
 		accept(TOKENIZER_ELSE);
 		statement(false);
 	}
+}
+
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void else_statement()
+{
+	// skip THEN branch
+	accept(TOKENIZER_THEN);
+	statement(false);
+
+	// do ELSE branch
+	accept(TOKENIZER_ELSE);
+	statement(true);
 }
 
 // ------------------------------------------------------------------------------
@@ -570,7 +571,6 @@ int factor()
 				accept(TOKENIZER_RIGHTPAREN);
 				break;
 			case TOKENIZER_RANDOM:
-				Serial.println("Random detected");
 				accept(TOKENIZER_RANDOM);
 				accept(TOKENIZER_LEFTPAREN);
 				r = random(tokenizer_num());

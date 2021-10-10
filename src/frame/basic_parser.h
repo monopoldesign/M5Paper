@@ -24,8 +24,8 @@ void for_statement(bool action);
 void next_statement(bool action);
 
 void if_statement(bool action);
-void else_statement();
 void then_statement();
+void else_statement();
 
 void let_statement(bool action);
 void update_statement(bool action);
