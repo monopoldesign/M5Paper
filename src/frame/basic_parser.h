@@ -14,20 +14,27 @@ void ubasic_run();
 int ubasic_finished();
 
 void line_statement();
-void end_statement();
-void print_statement();
-void gosub_statement();
-void return_statement();
-void for_statement();
-void next_statement();
-void let_statement();
-void update_statement();
-void circle_statement();
-void rect_statement();
+void end_statement(bool action);
+void print_statement(bool action);
+
+void gosub_statement(bool action);
+void return_statement(bool action);
+
+void for_statement(bool action);
+void next_statement(bool action);
+
+void if_statement(bool action);
+void else_statement();
+void then_statement();
+
+void let_statement(bool action);
+void update_statement(bool action);
+void circle_statement(bool action);
+void rect_statement(bool action);
 
 void jump_linenum(int linenum);
 void jump_linenum_slow(int linenum);
-void statement();
+void statement(bool action);
 int varfactor();
 int factor();
 int term();

@@ -41,8 +41,6 @@ const struct keyword_token keywords[] =
 	{"return", TOKENIZER_RETURN},
 	{"call", TOKENIZER_CALL},
 	{"rem", TOKENIZER_REM},
-	{"peek", TOKENIZER_PEEK},
-	{"poke", TOKENIZER_POKE},
 	{"update", TOKENIZER_UPDATE},
 	{"circle", TOKENIZER_CIRCLE},
 	{"rect", TOKENIZER_RECT},

@@ -110,21 +110,24 @@ void line_statement()
 {
 	index_add(tokenizer_num(), tokenizer_pos());
 	accept(TOKENIZER_NUMBER);
-	statement();
+	statement(true);
 	return;
 }
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void end_statement()
+void end_statement(bool action)
 {
-	accept(TOKENIZER_END);
-	ended = 1;
+	if (action)
+	{
+		accept(TOKENIZER_END);
+		ended = 1;
+	}	
 }
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void print_statement()
+void print_statement(bool action)
 {
 	uint8_t semi = 0;
 
@@ -134,70 +137,86 @@ void print_statement()
 		if (tokenizer_token() == TOKENIZER_STRING)
 		{
 			tokenizer_string(string, sizeof(string));
-			canvas_basic->print(string);
+
+			if (action)
+				canvas_basic->print(string);
+
 			tokenizer_next();
 		}
 		else if (tokenizer_token() == TOKENIZER_COMMA)
 		{
-			canvas_basic->print(",");
+			if (action)
+				canvas_basic->print(",");
+	
 			tokenizer_next();
 		}
 		else if (tokenizer_token() == TOKENIZER_SEMICOLON)
 		{
-			Serial.println("Semicolon found!");
 			semi = 1;
 			tokenizer_next();
 		}
 		else if (tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_NUMBER)
-			canvas_basic->print(expr());
+		{
+			if (action)
+				canvas_basic->print(expr());
+		}
 		else
 			break;
 	}
-	while(tokenizer_token() != TOKENIZER_CR && tokenizer_token() != TOKENIZER_ENDOFINPUT);
+	while (tokenizer_token() != TOKENIZER_CR && tokenizer_token() != TOKENIZER_ENDOFINPUT);
 
-	if (!semi)
+	if (!semi && action)
 		canvas_basic->println();
 
-	tokenizer_next();
+	if (tokenizer_token() == TOKENIZER_CR)
+		tokenizer_next();
 }
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void gosub_statement()
+void gosub_statement(bool action)
 {
 	int linenum;
 	accept(TOKENIZER_GOSUB);
 	linenum = tokenizer_num();
 	accept(TOKENIZER_NUMBER);
 	accept(TOKENIZER_CR);
-	if (gosub_stack_ptr < MAX_GOSUB_STACK_DEPTH)
+
+	if (action)
 	{
-		gosub_stack[gosub_stack_ptr] = tokenizer_num();
-		gosub_stack_ptr++;
-		jump_linenum(linenum);
-	}
-	else
-	{
-		//printf("GOSUB ERROR!\n");
-		Serial.println("GOSUB ERROR!");
+		if (gosub_stack_ptr < MAX_GOSUB_STACK_DEPTH)
+		{
+			gosub_stack[gosub_stack_ptr] = tokenizer_num();
+			gosub_stack_ptr++;
+			jump_linenum(linenum);
+		}
+		else
+		{
+			//printf("GOSUB ERROR!\n");
+			Serial.println("GOSUB ERROR!");
+		}
 	}
 }
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void return_statement()
+void return_statement(bool action)
 {
 	accept(TOKENIZER_RETURN);
-	if (gosub_stack_ptr > 0)
+
+	if (action)
 	{
-		gosub_stack_ptr--;
-		jump_linenum(gosub_stack[gosub_stack_ptr]);
+		if (gosub_stack_ptr > 0)
+		{
+			gosub_stack_ptr--;
+			jump_linenum(gosub_stack[gosub_stack_ptr]);
+		}
 	}
 }
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void for_statement()
+void for_statement(bool action)
 {
 	int for_variable, to;
 
@@ -221,7 +240,7 @@ void for_statement()
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void next_statement()
+void next_statement(bool action)
 {
 	int var;
 
@@ -247,34 +266,106 @@ void next_statement()
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void let_statement()
+void if_statement(bool action)
 {
-  int var;
+	uint8_t var;
 
-  var = tokenizer_variable_num();
+	accept(TOKENIZER_IF);
+	var = tokenizer_variable_num();
+	accept(TOKENIZER_VARIABLE);
 
-  accept(TOKENIZER_VARIABLE);
-  accept(TOKENIZER_EQ);
-  ubasic_set_variable(var, expr());
-  accept(TOKENIZER_CR);
+	switch (tokenizer_token())
+	{
+		case TOKENIZER_LT:
+			accept(TOKENIZER_LT);
+			if (ubasic_get_variable(var) < expr())
+				then_statement();
+			else
+				else_statement();
+			break;
+
+		case TOKENIZER_GT:
+			accept(TOKENIZER_GT);
+			if (ubasic_get_variable(var) > expr())
+				then_statement();
+			else
+				else_statement();
+			break;
+
+		case TOKENIZER_EQ:
+			accept(TOKENIZER_EQ);
+			if (ubasic_get_variable(var) == expr())
+				then_statement();
+			else
+				else_statement();
+			break;
+	}
 }
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void update_statement()
+void else_statement()
 {
-	canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
+	// skip THEN branch
+	accept(TOKENIZER_THEN);
+	statement(false);
+
+	// do ELSE branch
+	accept(TOKENIZER_ELSE);
+	statement(true);
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void then_statement()
+{
+	// do THEN branch
+	accept(TOKENIZER_THEN);
+	statement(true);
+
+	// skip ELSE branch
+	if (tokenizer_token() == TOKENIZER_ELSE)
+	{
+		accept(TOKENIZER_ELSE);
+		statement(false);
+	}
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void let_statement(bool action)
+{
+	int var;
+
+	var = tokenizer_variable_num();
+
+	accept(TOKENIZER_VARIABLE);
+	accept(TOKENIZER_EQ);
+
+	if (action)
+		ubasic_set_variable(var, expr());
+
+	accept(TOKENIZER_CR);
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void update_statement(bool action)
+{
 	accept(TOKENIZER_UPDATE);
 
 	if (tokenizer_token() == TOKENIZER_CR)
 		accept(TOKENIZER_CR);
 	else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
 		ended = 1;
+
+	if (action)
+		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
 }
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void circle_statement()
+void circle_statement(bool action)
 {
 	uint16_t x = 0, y = 0, r = 0, c = 0;
 
@@ -307,12 +398,13 @@ void circle_statement()
 	else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
 		ended = 1;
 
-	canvas_basic->drawCircle(x, y, r, c);
+	if (action)
+		canvas_basic->drawCircle(x, y, r, c);
 }
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void rect_statement()
+void rect_statement(bool action)
 {
 	uint16_t x = 0, y = 0, w = 0, h = 0, c = 0;
 
@@ -351,7 +443,8 @@ void rect_statement()
 	else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
 		ended = 1;
 
-	canvas_basic->drawRect(x, y, w, h, c);
+	if (action)
+		canvas_basic->drawRect(x, y, w, h, c);
 }
 
 // ------------------------------------------------------------------------------
@@ -398,7 +491,7 @@ void jump_linenum_slow(int linenum)
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
-void statement()
+void statement(bool action)
 {
 	int token;
 
@@ -407,41 +500,44 @@ void statement()
 	switch(token)
 	{
 		case TOKENIZER_PRINT:
-			print_statement();
+			print_statement(action);
 			break;
 		case TOKENIZER_GOSUB:
-			gosub_statement();
+			gosub_statement(action);
 			break;
 		case TOKENIZER_RETURN:
-			return_statement();
+			return_statement(action);
 			break;
 		case TOKENIZER_FOR:
-			for_statement();
+			for_statement(action);
 			break;
 		case TOKENIZER_NEXT:
-			next_statement();
+			next_statement(action);
+			break;
+		case TOKENIZER_IF:
+			if_statement(action);
 			break;
 		case TOKENIZER_UPDATE:
-			update_statement();
+			update_statement(action);
 			break;
 		case TOKENIZER_CIRCLE:
-			circle_statement();
+			circle_statement(action);
 			break;
 		case TOKENIZER_RECT:
-			rect_statement();
+			rect_statement(action);
 			break;
 		case TOKENIZER_END:
-			end_statement();
+			end_statement(action);
 			break;
 		case TOKENIZER_LET:
 			accept(TOKENIZER_LET);
 			/* Fall through. */
 		case TOKENIZER_VARIABLE:
-			let_statement();
+			let_statement(action);
 			break;
 		default:
-			//printf("UNKNOWN TOKEN\n");
 			Serial.println("UNKNOWN TOKEN");
+			Serial.println(tokenizer_token());
 			ended = 1;
 	}
 }

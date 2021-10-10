@@ -210,6 +210,13 @@ void EPDGUI_Textbox::UpdateButton()
 			Draw(UPDATE_MODE_A2);
 		}
 	}
+
+	if (buttonP)
+	{
+		buttonP = 0;
+		_cursorPos = 0;
+		Draw(UPDATE_MODE_A2);
+	}
 }
 
 void EPDGUI_Textbox::SetState(int16_t state)
