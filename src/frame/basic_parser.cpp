@@ -373,25 +373,25 @@ void circle_statement(bool action)
 	accept(TOKENIZER_CIRCLE);
 
 	// get x
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		x = expr();
 
 	accept(TOKENIZER_COMMA);
 
 	// get y
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		y = expr();
 
 	accept(TOKENIZER_COMMA);
 
 	// get radius
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		r = expr();
 
 	accept(TOKENIZER_COMMA);
 
 	// get color
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		c = expr();
 
 	if (tokenizer_token() == TOKENIZER_CR)
@@ -412,31 +412,31 @@ void rect_statement(bool action)
 	accept(TOKENIZER_RECT);
 
 	// get x
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		x = expr();
 
 	accept(TOKENIZER_COMMA);
 
 	// get y
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		y = expr();
 
 	accept(TOKENIZER_COMMA);
 
 	// get width
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		w = expr();
 
 	accept(TOKENIZER_COMMA);
 
 	// get height
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		h = expr();
 
 	accept(TOKENIZER_COMMA);
 
 	// get color
-	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE)
+	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		c = expr();
 
 	if (tokenizer_token() == TOKENIZER_CR)
