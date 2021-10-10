@@ -50,22 +50,6 @@ int16_t _margin_left, _margin_right, _margin_top, _margin_bottom;
 // ******************************************************************************
 
 // ------------------------------------------------------------------------------
-// main()
-// ------------------------------------------------------------------------------
-//int main(int argc, const char * argv[])
-//{
-//	ubasic_init(program2);
-//
-//	do
-//	{
-//		line_statement();
-//	}
-//	while (!ubasic_finished());
-//
-//	return 0;
-//}
-
-// ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
 void ubasic_init(const char *program, M5EPD_Canvas *canvas)
 {
@@ -168,8 +152,7 @@ void print_statement(bool action)
 	if (!semi && action)
 		canvas_basic->println();
 
-	if (tokenizer_token() == TOKENIZER_CR)
-		tokenizer_next();
+	ubasic_end();
 }
 
 // ------------------------------------------------------------------------------
@@ -257,25 +240,11 @@ void next_statement(bool action)
 		else
 		{
 			for_stack_ptr--;
-			if (tokenizer_token() == TOKENIZER_CR)
-				accept(TOKENIZER_CR);
-			else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
-			{
-				canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
-				ended = 1;
-			}
+			ubasic_end();
 		}
 	}
 	else
-	{
-		if (tokenizer_token() == TOKENIZER_CR)
-			accept(TOKENIZER_CR);
-		else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
-		{
-			canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
-			ended = 1;
-		}
-	}
+		ubasic_end();
 }
 
 // ------------------------------------------------------------------------------
@@ -408,13 +377,10 @@ void circle_statement(bool action)
 	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		c = expr();
 
-	if (tokenizer_token() == TOKENIZER_CR)
-		accept(TOKENIZER_CR);
-	else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
-		ended = 1;
-
 	if (action)
 		canvas_basic->drawCircle(x, y, r, c);
+
+	ubasic_end();
 }
 
 // ------------------------------------------------------------------------------
@@ -453,13 +419,10 @@ void rect_statement(bool action)
 	if (tokenizer_token() == TOKENIZER_NUMBER || tokenizer_token() == TOKENIZER_VARIABLE || tokenizer_token() == TOKENIZER_RANDOM)
 		c = expr();
 
-	if (tokenizer_token() == TOKENIZER_CR)
-		accept(TOKENIZER_CR);
-	else if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
-		ended = 1;
-
 	if (action)
 		canvas_basic->drawRect(x, y, w, h, c);
+
+	ubasic_end();
 }
 
 // ------------------------------------------------------------------------------
@@ -554,6 +517,20 @@ void statement(bool action)
 			Serial.println("UNKNOWN TOKEN");
 			Serial.println(tokenizer_token());
 			ended = 1;
+	}
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void ubasic_end()
+{
+	if (tokenizer_token() == TOKENIZER_CR)
+		tokenizer_next();
+	
+	if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
+	{
+		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
+		ended = 1;
 	}
 }
 
