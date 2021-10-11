@@ -201,7 +201,7 @@ void return_statement(bool action)
 // ------------------------------------------------------------------------------
 void for_statement(bool action)
 {
-	int for_variable, to;
+	int for_variable, to, step;
 
 	accept(TOKENIZER_FOR);
 	for_variable = tokenizer_variable_num();
@@ -210,13 +210,25 @@ void for_statement(bool action)
 	ubasic_set_variable(for_variable, expr());
 	accept(TOKENIZER_TO);
 	to = expr();
-	accept(TOKENIZER_CR);
+
+	if (tokenizer_token() == TOKENIZER_STEP)
+	{
+		accept(TOKENIZER_STEP);
+		step = expr();
+		accept(TOKENIZER_CR);
+	}
+	else
+	{
+		accept(TOKENIZER_CR);
+		step = 1;
+	}
 
 	if (for_stack_ptr < MAX_FOR_STACK_DEPTH)
 	{
 		for_stack[for_stack_ptr].line_after_for = tokenizer_num();
 		for_stack[for_stack_ptr].for_variable = for_variable;
 		for_stack[for_stack_ptr].to = to;
+		for_stack[for_stack_ptr].step = step;
 		for_stack_ptr++;
 	}
 }
@@ -233,10 +245,10 @@ void next_statement(bool action)
 
 	if (for_stack_ptr > 0 && var == for_stack[for_stack_ptr - 1].for_variable)
 	{
-		ubasic_set_variable(var, ubasic_get_variable(var) + 1);
+		ubasic_set_variable(var, ubasic_get_variable(var) + for_stack[for_stack_ptr - 1].step);
 
 		if (ubasic_get_variable(var) <= for_stack[for_stack_ptr - 1].to)
-				jump_linenum(for_stack[for_stack_ptr - 1].line_after_for);
+			jump_linenum(for_stack[for_stack_ptr - 1].line_after_for);
 		else
 		{
 			for_stack_ptr--;

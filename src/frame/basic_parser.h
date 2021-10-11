@@ -36,6 +36,7 @@ void jump_linenum(int linenum);
 void jump_linenum_slow(int linenum);
 void statement(bool action);
 void ubasic_end();
+
 int varfactor();
 int factor();
 int term();
@@ -56,6 +57,7 @@ struct for_state
 	int line_after_for;
 	int for_variable;
 	int to;
+	int step;
 };
 
 // ******************************************************************************
