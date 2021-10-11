@@ -277,6 +277,8 @@ int singlechar()
 		return TOKENIZER_GT;
 	else if (*ptr == '=')
 		return TOKENIZER_EQ;
+	else if (*ptr == '$')
+		return TOKENIZER_DOLLAR;
 
 	return TOKENIZER_ERROR;
 }

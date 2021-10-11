@@ -55,10 +55,6 @@ int Frame_Basic_Output::run()
 		for (uint8_t i = 0; i < 4; i++)
 			_canvas_output->drawRect(i, i, 520 - (2 * i), ((8 * 60) + 18) - (2 * i), 15);
 
-		//_canvas_output->setTextSize(_size);
-		//_canvas_output->setTextArea(_margin_left, _margin_top, 520 - _margin_left - _margin_right, ((8 * 60) + 18) - _margin_top - _margin_bottom);
-		//_canvas_output->print(_data);
-
 		program = (char *)malloc(_data.length() + 1);
 		_data.toCharArray(program, _data.length());
 		ubasic_init(program, _canvas_output);
@@ -74,18 +70,6 @@ int Frame_Basic_Output::run()
 			free(program);
 		}
 	}
-
-	/*
-	if (_loopCount < 10 && _is_running)
-	{
-		_loopCount++;
-		uint16_t _x = random(520);
-		uint16_t _y = random(((8 * 60) + 18));
-		uint16_t _r = random(200);
-		_canvas_output->drawCircle(_x, _y, _r, 15);
-		_canvas_output->pushCanvas(10, 90, UPDATE_MODE_GC16);
-	}
-	*/
 
 	return 1;
 }

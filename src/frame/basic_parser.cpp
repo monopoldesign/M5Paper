@@ -38,6 +38,7 @@ struct line_index *line_index_current = NULL;
 
 #define MAX_VARNUM 26
 int16_t variables[MAX_VARNUM];
+String stringvars[MAX_VARNUM];
 
 uint8_t ended;
 M5EPD_Canvas *canvas_basic;
@@ -100,6 +101,73 @@ void line_statement()
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
+void ubasic_end()
+{
+	if (tokenizer_token() == TOKENIZER_CR)
+		tokenizer_next();
+	
+	if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
+	{
+		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
+		ended = 1;
+	}
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void statement(bool action)
+{
+	int token;
+
+	token = tokenizer_token();
+
+	switch(token)
+	{
+		case TOKENIZER_PRINT:
+			print_statement(action);
+			break;
+		case TOKENIZER_GOSUB:
+			gosub_statement(action);
+			break;
+		case TOKENIZER_RETURN:
+			return_statement(action);
+			break;
+		case TOKENIZER_FOR:
+			for_statement(action);
+			break;
+		case TOKENIZER_NEXT:
+			next_statement(action);
+			break;
+		case TOKENIZER_IF:
+			if_statement(action);
+			break;
+		case TOKENIZER_UPDATE:
+			update_statement(action);
+			break;
+		case TOKENIZER_CIRCLE:
+			circle_statement(action);
+			break;
+		case TOKENIZER_RECT:
+			rect_statement(action);
+			break;
+		case TOKENIZER_END:
+			end_statement(action);
+			break;
+		case TOKENIZER_LET:
+			accept(TOKENIZER_LET);
+			/* Fall through. */
+		case TOKENIZER_VARIABLE:
+			let_statement(action);
+			break;
+		default:
+			Serial.println("UNKNOWN TOKEN");
+			Serial.println(tokenizer_token());
+			ended = 1;
+	}
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 void end_statement(bool action)
 {
 	if (action)
@@ -143,6 +211,16 @@ void print_statement(bool action)
 		{
 			if (action)
 				canvas_basic->print(expr());
+		}
+		else if (tokenizer_token() == TOKENIZER_DOLLAR)
+		{
+			accept(TOKENIZER_DOLLAR);
+			uint8_t var = tokenizer_variable_num();
+
+			if (action)
+				canvas_basic->print(ubasic_get_stringvar(var));
+
+			tokenizer_next();
 		}
 		else
 			break;
@@ -333,15 +411,33 @@ void let_statement(bool action)
 {
 	int var;
 
-	var = tokenizer_variable_num();
+	if (tokenizer_token() == TOKENIZER_VARIABLE)
+	{
+		var = tokenizer_variable_num();
 
-	accept(TOKENIZER_VARIABLE);
-	accept(TOKENIZER_EQ);
+		accept(TOKENIZER_VARIABLE);
+		accept(TOKENIZER_EQ);
 
-	if (action)
-		ubasic_set_variable(var, expr());
+		if (action)
+			ubasic_set_variable(var, expr());
+	}
+	else if (tokenizer_token() == TOKENIZER_DOLLAR)
+	{
+		accept(TOKENIZER_DOLLAR);
 
-	accept(TOKENIZER_CR);
+		var = tokenizer_variable_num();
+		accept(TOKENIZER_VARIABLE);
+		accept(TOKENIZER_EQ);
+
+		tokenizer_string(string, sizeof(string));
+
+		if (action)
+			ubasic_set_stringvar(var, String(string));
+
+		tokenizer_next();
+	}
+
+	ubasic_end();
 }
 
 // ------------------------------------------------------------------------------
@@ -442,17 +538,11 @@ void rect_statement(bool action)
 void jump_linenum(int linenum)
 {
 	const char *pos = index_find(linenum);
+
 	if (pos != NULL)
-	{
-		//printf("going to line %02d\n", linenum);
 		tokenizer_goto(pos);
-	}
 	else
-	{
-		/* We'll try to find a yet-unindexed line to jump to. */
-		//printf("jump_linenum: %02d Calling jump_linenum_slow.\n", linenum);
 		jump_linenum_slow(linenum);
-	}
 }
 
 // ------------------------------------------------------------------------------
@@ -471,78 +561,9 @@ void jump_linenum_slow(int linenum)
 			while (tokenizer_token() != TOKENIZER_CR && tokenizer_token() != TOKENIZER_ENDOFINPUT);
 
 			if (tokenizer_token() == TOKENIZER_CR)
-			{
 				tokenizer_next();
-			}
 		}
 		while(tokenizer_token() != TOKENIZER_NUMBER);
-	}
-}
-
-// ------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------
-void statement(bool action)
-{
-	int token;
-
-	token = tokenizer_token();
-
-	switch(token)
-	{
-		case TOKENIZER_PRINT:
-			print_statement(action);
-			break;
-		case TOKENIZER_GOSUB:
-			gosub_statement(action);
-			break;
-		case TOKENIZER_RETURN:
-			return_statement(action);
-			break;
-		case TOKENIZER_FOR:
-			for_statement(action);
-			break;
-		case TOKENIZER_NEXT:
-			next_statement(action);
-			break;
-		case TOKENIZER_IF:
-			if_statement(action);
-			break;
-		case TOKENIZER_UPDATE:
-			update_statement(action);
-			break;
-		case TOKENIZER_CIRCLE:
-			circle_statement(action);
-			break;
-		case TOKENIZER_RECT:
-			rect_statement(action);
-			break;
-		case TOKENIZER_END:
-			end_statement(action);
-			break;
-		case TOKENIZER_LET:
-			accept(TOKENIZER_LET);
-			/* Fall through. */
-		case TOKENIZER_VARIABLE:
-			let_statement(action);
-			break;
-		default:
-			Serial.println("UNKNOWN TOKEN");
-			Serial.println(tokenizer_token());
-			ended = 1;
-	}
-}
-
-// ------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------
-void ubasic_end()
-{
-	if (tokenizer_token() == TOKENIZER_CR)
-		tokenizer_next();
-	
-	if (tokenizer_token() == TOKENIZER_ENDOFINPUT)
-	{
-		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
-		ended = 1;
 	}
 }
 
@@ -562,7 +583,7 @@ int factor()
 {
 	int r;
 
-	switch(tokenizer_token())
+	switch (tokenizer_token())
 	{
 			case TOKENIZER_NUMBER:
 				r = tokenizer_num();
@@ -666,7 +687,7 @@ void accept(int token)
 		Serial.println(token);
 		Serial.print("current Token: ");
 		Serial.println(tokenizer_token());
-		String error = "SYNTAX ERROR ON LINE" + String(line_index_current->line_number);
+		String error = "SYNTAX ERROR ON LINE " + String(line_index_current->line_number);
 		canvas_basic->println(error);
 		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
 		ended = 1;
@@ -756,4 +777,22 @@ int ubasic_get_variable(int varnum)
 		return variables[varnum];
 
 	return 0;
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void ubasic_set_stringvar(int varnum, String value)
+{
+	if (varnum >= 0 && varnum <= MAX_VARNUM && value != "")
+		stringvars[varnum] = value;
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+String ubasic_get_stringvar(int varnum)
+{
+	if (varnum >= 0 && varnum <= MAX_VARNUM)
+		return stringvars[varnum];
+
+	return "";
 }
