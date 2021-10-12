@@ -13,6 +13,7 @@ class Frame_Basic_Output : public Frame_Base
 	    int run();
 
 	private:
+	    M5EPD_Canvas *_canvas_outback;
 	    M5EPD_Canvas *_canvas_output;
 
 		bool _is_first;

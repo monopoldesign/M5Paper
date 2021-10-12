@@ -5,6 +5,7 @@
 // Includes
 // ******************************************************************************
 #include <Arduino.h>
+#include "../epdgui/epdgui.h"
 
 // ******************************************************************************
 // Prototypes
@@ -33,6 +34,7 @@ void let_statement(bool action);
 void update_statement(bool action);
 void circle_statement(bool action);
 void rect_statement(bool action);
+void button_statement(bool action);
 
 void jump_linenum(int linenum);
 void jump_linenum_slow(int linenum);
@@ -52,6 +54,8 @@ int ubasic_get_variable(int varnum);
 void ubasic_set_stringvar(int varnum, String value);
 String ubasic_get_stringvar(int varnum);
 
+void button_pressed(epdgui_args_vector_t &args);
+
 // ******************************************************************************
 // Definitions
 // ******************************************************************************
@@ -66,5 +70,6 @@ struct for_state
 // ******************************************************************************
 // Global Variables
 // ******************************************************************************
+extern EPDGUI_Button *_button;
 
 #endif

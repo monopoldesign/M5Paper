@@ -19,6 +19,7 @@ Frame_Basic_Output::Frame_Basic_Output() : Frame_Base()
 Frame_Basic_Output::~Frame_Basic_Output(void)
 {
 	delete _canvas_output;
+	delete _canvas_outback;
 	delete _key_exit;
 }
 
@@ -48,6 +49,11 @@ int Frame_Basic_Output::run()
 		_is_first = false;
 		_is_running = true;
 		_loopCount = 0;
+
+		_canvas_outback = new M5EPD_Canvas(&M5.EPD);
+		_canvas_outback->createCanvas(540, 870);
+		_canvas_outback->pushCanvas(0, 90, UPDATE_MODE_GC16);
+
 		_canvas_output = new M5EPD_Canvas(&M5.EPD);
 		_canvas_output->createCanvas(520, (8 * 60) + 18);
 

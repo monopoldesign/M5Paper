@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <M5EPD.h>
 
+#include "../epdgui/epdgui_button.h"
+
 #include "basic_parser.h"
 #include "basic_tokenizer.h"
 
@@ -45,6 +47,9 @@ M5EPD_Canvas *canvas_basic;
 
 uint8_t _size;
 int16_t _margin_left, _margin_right, _margin_top, _margin_bottom;
+
+EPDGUI_Button *_button = 0;
+bool hasButton = false;
 
 // ******************************************************************************
 // Functions
@@ -93,9 +98,12 @@ int ubasic_finished()
 // ------------------------------------------------------------------------------
 void line_statement()
 {
-	index_add(tokenizer_num(), tokenizer_pos());
-	accept(TOKENIZER_NUMBER);
-	statement(true);
+	if (!hasButton)
+	{
+		index_add(tokenizer_num(), tokenizer_pos());
+		accept(TOKENIZER_NUMBER);
+		statement(true);
+	}
 	return;
 }
 
@@ -110,6 +118,9 @@ void ubasic_end()
 	{
 		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
 		ended = 1;
+
+		//if (_button)
+		//	delete _button;
 	}
 }
 
@@ -149,6 +160,9 @@ void statement(bool action)
 			break;
 		case TOKENIZER_RECT:
 			rect_statement(action);
+			break;
+		case TOKENIZER_BUTTON:
+			button_statement(action);
 			break;
 		case TOKENIZER_END:
 			end_statement(action);
@@ -535,6 +549,57 @@ void rect_statement(bool action)
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
+void button_statement(bool action)
+{
+	uint8_t buttonNr = 0;
+
+	accept(TOKENIZER_BUTTON);
+
+	if (tokenizer_token() == TOKENIZER_NUMBER)
+	{
+		buttonNr = tokenizer_num();
+		accept(TOKENIZER_NUMBER);
+		accept(TOKENIZER_COMMA);
+	}
+
+	if (tokenizer_token() == TOKENIZER_STRING)
+	{
+		tokenizer_string(string, sizeof(string));
+
+		if (action)
+		{
+			if (buttonNr > 0)
+				_button = new EPDGUI_Button(string, 3 + (buttonNr * 170) + ((buttonNr - 1) * 8), 638, 170, 52);
+			else
+				_button = new EPDGUI_Button(string, 3, 638, 170, 52);
+
+			EPDGUI_AddObject(_button);
+			_button->Bind(EPDGUI_Button::EVENT_RELEASED, button_pressed);
+			_button->Draw();
+		}
+	}
+	else
+	{
+		if (action)
+		{
+			if (buttonNr > 0)
+				_button = new EPDGUI_Button("BUT", 3 + (buttonNr * 170) + ((buttonNr - 1) * 8), 638, 170, 52);
+			else
+				_button = new EPDGUI_Button("BUT", 3, 638, 170, 52);
+
+			EPDGUI_AddObject(_button);
+			_button->Bind(EPDGUI_Button::EVENT_RELEASED, button_pressed);
+			_button->Draw();
+		}
+	}
+	hasButton = true;
+	tokenizer_next();
+
+	ubasic_end();
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 void jump_linenum(int linenum)
 {
 	const char *pos = index_find(linenum);
@@ -795,4 +860,11 @@ String ubasic_get_stringvar(int varnum)
 		return stringvars[varnum];
 
 	return "";
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void button_pressed(epdgui_args_vector_t &args)
+{
+	hasButton = false;
 }
