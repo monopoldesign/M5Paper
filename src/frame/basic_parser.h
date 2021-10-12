@@ -35,6 +35,7 @@ void update_statement(bool action);
 void circle_statement(bool action);
 void rect_statement(bool action);
 void button_statement(bool action);
+void waitbutton_statement(bool action);
 
 void jump_linenum(int linenum);
 void jump_linenum_slow(int linenum);
@@ -70,6 +71,6 @@ struct for_state
 // ******************************************************************************
 // Global Variables
 // ******************************************************************************
-extern EPDGUI_Button *_button;
+extern EPDGUI_Button *_button[3];
 
 #endif

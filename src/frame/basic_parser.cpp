@@ -48,8 +48,9 @@ M5EPD_Canvas *canvas_basic;
 uint8_t _size;
 int16_t _margin_left, _margin_right, _margin_top, _margin_bottom;
 
-EPDGUI_Button *_button = 0;
+EPDGUI_Button *_button[3] = {NULL, NULL, NULL};
 bool hasButton = false;
+uint8_t waitButton;
 
 // ******************************************************************************
 // Functions
@@ -163,6 +164,9 @@ void statement(bool action)
 			break;
 		case TOKENIZER_BUTTON:
 			button_statement(action);
+			break;
+		case TOKENIZER_WAITBUTTON:
+			waitbutton_statement(action);
 			break;
 		case TOKENIZER_END:
 			end_statement(action);
@@ -551,50 +555,80 @@ void rect_statement(bool action)
 // ------------------------------------------------------------------------------
 void button_statement(bool action)
 {
-	uint8_t buttonNr = 0;
+	uint8_t buttonNr = 0xff;
 
 	accept(TOKENIZER_BUTTON);
 
 	if (tokenizer_token() == TOKENIZER_NUMBER)
 	{
-		buttonNr = tokenizer_num();
+		if (tokenizer_num() < 3)
+			buttonNr = tokenizer_num();
+
 		accept(TOKENIZER_NUMBER);
-		accept(TOKENIZER_COMMA);
-	}
-
-	if (tokenizer_token() == TOKENIZER_STRING)
-	{
-		tokenizer_string(string, sizeof(string));
-
-		if (action)
-		{
-			if (buttonNr > 0)
-				_button = new EPDGUI_Button(string, 3 + (buttonNr * 170) + ((buttonNr - 1) * 8), 638, 170, 52);
-			else
-				_button = new EPDGUI_Button(string, 3, 638, 170, 52);
-
-			EPDGUI_AddObject(_button);
-			_button->Bind(EPDGUI_Button::EVENT_RELEASED, button_pressed);
-			_button->Draw();
-		}
 	}
 	else
+		buttonNr = 0;
+
+	if (buttonNr != 0xff)
 	{
+		if (tokenizer_token() == TOKENIZER_COMMA)
+			accept(TOKENIZER_COMMA);
+
+		if (tokenizer_token() == TOKENIZER_STRING)
+		{
+			tokenizer_string(string, sizeof(string));
+
+			if (action)
+				_button[buttonNr] = new EPDGUI_Button(string, 3 + (buttonNr * 170) + (buttonNr * 8), 638, 170, 52);
+
+			tokenizer_next();
+		}
+		else
+		{
+			if (action)
+				_button[buttonNr] = new EPDGUI_Button("BUT" + String(buttonNr), 3 + (buttonNr * 170) + (buttonNr * 8), 638, 170, 52);
+		}
+
 		if (action)
 		{
-			if (buttonNr > 0)
-				_button = new EPDGUI_Button("BUT", 3 + (buttonNr * 170) + ((buttonNr - 1) * 8), 638, 170, 52);
-			else
-				_button = new EPDGUI_Button("BUT", 3, 638, 170, 52);
-
-			EPDGUI_AddObject(_button);
-			_button->Bind(EPDGUI_Button::EVENT_RELEASED, button_pressed);
-			_button->Draw();
+			EPDGUI_AddObject(_button[buttonNr]);
+			_button[buttonNr]->SetID(buttonNr);
+			_button[buttonNr]->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, _button[buttonNr]);
+			_button[buttonNr]->Bind(EPDGUI_Button::EVENT_RELEASED, button_pressed);
+			_button[buttonNr]->Draw();
 		}
 	}
-	hasButton = true;
 	tokenizer_next();
+	ubasic_end();
+}
 
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void waitbutton_statement(bool action)
+{
+	uint8_t buttonNr;
+
+	accept(TOKENIZER_WAITBUTTON);
+
+	if (tokenizer_token() == TOKENIZER_NUMBER)
+	{
+		buttonNr = tokenizer_num();
+
+		if (buttonNr < 3)
+		{
+			if (_button[buttonNr] != NULL)
+			{
+				waitButton = buttonNr;
+
+				if (action)
+					hasButton = true;
+			}
+		}
+		accept(TOKENIZER_NUMBER);
+
+	}
+
+	tokenizer_next();
 	ubasic_end();
 }
 
@@ -866,5 +900,8 @@ String ubasic_get_stringvar(int varnum)
 // ------------------------------------------------------------------------------
 void button_pressed(epdgui_args_vector_t &args)
 {
-	hasButton = false;
+	uint8_t id = ((EPDGUI_Button *)(args[0]))->GetID();
+
+	if (id == waitButton)
+		hasButton = false;
 }

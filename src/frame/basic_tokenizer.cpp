@@ -47,6 +47,7 @@ const struct keyword_token keywords[] =
 	{"rect", TOKENIZER_RECT},
 	{"rnd", TOKENIZER_RANDOM},
 	{"button", TOKENIZER_BUTTON},
+	{"waitbutton", TOKENIZER_WAITBUTTON},
 	{"end", TOKENIZER_END},
 	{NULL, TOKENIZER_ERROR}
 };
