@@ -36,6 +36,7 @@ void circle_statement(bool action);
 void rect_statement(bool action);
 void button_statement(bool action);
 void waitbutton_statement(bool action);
+void cls_statement(bool action);
 
 void jump_linenum(int linenum);
 void jump_linenum_slow(int linenum);

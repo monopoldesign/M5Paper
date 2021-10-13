@@ -51,6 +51,7 @@ int16_t _margin_left, _margin_right, _margin_top, _margin_bottom;
 EPDGUI_Button *_button[3] = {NULL, NULL, NULL};
 bool hasButton = false;
 uint8_t waitButton;
+uint8_t buttonID;
 
 // ******************************************************************************
 // Functions
@@ -168,6 +169,9 @@ void statement(bool action)
 		case TOKENIZER_WAITBUTTON:
 			waitbutton_statement(action);
 			break;
+		case TOKENIZER_CLS:
+			cls_statement(action);
+			break;
 		case TOKENIZER_END:
 			end_statement(action);
 			break;
@@ -192,6 +196,7 @@ void end_statement(bool action)
 	{
 		accept(TOKENIZER_END);
 		ended = 1;
+		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
 	}	
 }
 
@@ -259,22 +264,20 @@ void gosub_statement(bool action)
 	accept(TOKENIZER_GOSUB);
 	linenum = tokenizer_num();
 	accept(TOKENIZER_NUMBER);
-	accept(TOKENIZER_CR);
 
 	if (action)
 	{
 		if (gosub_stack_ptr < MAX_GOSUB_STACK_DEPTH)
 		{
-			gosub_stack[gosub_stack_ptr] = tokenizer_num();
+			gosub_stack[gosub_stack_ptr] = linenum;
 			gosub_stack_ptr++;
 			jump_linenum(linenum);
 		}
 		else
-		{
-			//printf("GOSUB ERROR!\n");
 			Serial.println("GOSUB ERROR!");
-		}
 	}
+
+	ubasic_end();
 }
 
 // ------------------------------------------------------------------------------
@@ -404,6 +407,7 @@ void then_statement()
 	// skip ELSE branch
 	if (tokenizer_token() == TOKENIZER_ELSE)
 	{
+		Serial.println("Skipping else...");
 		accept(TOKENIZER_ELSE);
 		statement(false);
 	}
@@ -625,10 +629,33 @@ void waitbutton_statement(bool action)
 			}
 		}
 		accept(TOKENIZER_NUMBER);
+	}
+	else
+	{
+		waitButton = 0xff;
 
+		if (action)
+			hasButton = true;
 	}
 
 	tokenizer_next();
+	ubasic_end();
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void cls_statement(bool action)
+{
+	accept(TOKENIZER_CLS);
+
+	if (action)
+	{
+		canvas_basic->fillCanvas(0);
+
+		for (uint8_t i = 0; i < 4; i++)
+			canvas_basic->drawRect(i, i, 520 - (2 * i), ((8 * 60) + 18) - (2 * i), 15);
+	}
+
 	ubasic_end();
 }
 
@@ -699,6 +726,10 @@ int factor()
 				r = random(tokenizer_num());
 				accept(TOKENIZER_NUMBER);
 				accept(TOKENIZER_RIGHTPAREN);
+				break;
+			case TOKENIZER_BUTTONID:
+				accept(TOKENIZER_BUTTONID);
+				r = buttonID;
 				break;
 			default:
 				r = varfactor();
@@ -902,6 +933,13 @@ void button_pressed(epdgui_args_vector_t &args)
 {
 	uint8_t id = ((EPDGUI_Button *)(args[0]))->GetID();
 
-	if (id == waitButton)
+	buttonID = id;
+
+	if (waitButton != 0xff)
+	{
+		if (id == waitButton)
+			hasButton = false;
+	}
+	else
 		hasButton = false;
 }
