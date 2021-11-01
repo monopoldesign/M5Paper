@@ -18,6 +18,7 @@ Frame_Basic_Output::Frame_Basic_Output() : Frame_Base()
 
 Frame_Basic_Output::~Frame_Basic_Output(void)
 {
+	ubasic_removeButtons();
 	delete _canvas_output;
 	delete _canvas_outback;
 	delete _key_exit;

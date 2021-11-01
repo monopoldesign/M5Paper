@@ -30,6 +30,7 @@ const struct keyword_token keywords[] =
 {
 	{"let", TOKENIZER_LET},
 	{"print", TOKENIZER_PRINT},
+	{"goto", TOKENIZER_GOTO},
 	{"if", TOKENIZER_IF},
 	{"then", TOKENIZER_THEN},
 	{"else", TOKENIZER_ELSE},

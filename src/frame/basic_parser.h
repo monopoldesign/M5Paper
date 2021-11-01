@@ -15,10 +15,12 @@ void ubasic_run();
 int ubasic_finished();
 void line_statement();
 void ubasic_end();
+void ubasic_removeButtons();
 void statement(bool action);
 
 void end_statement(bool action);
 void print_statement(bool action);
+void goto_statement(bool action);
 
 void gosub_statement(bool action);
 void return_statement(bool action);
@@ -72,6 +74,5 @@ struct for_state
 // ******************************************************************************
 // Global Variables
 // ******************************************************************************
-extern EPDGUI_Button *_button[3];
 
 #endif

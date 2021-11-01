@@ -77,6 +77,7 @@ void ubasic_init(const char *program, M5EPD_Canvas *canvas)
 	index_free();
 	tokenizer_init(program);
 	ended = 0;
+	ubasic_removeButtons();
 }
 
 // ------------------------------------------------------------------------------
@@ -120,9 +121,21 @@ void ubasic_end()
 	{
 		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
 		ended = 1;
+		//ubasic_removeButtons();
+	}
+}
 
-		//if (_button)
-		//	delete _button;
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
+void ubasic_removeButtons()
+{
+	for (uint8_t i = 0; i < 3; i++)
+	{
+		if (_button[i] != NULL)
+		{
+			delete _button[i];
+			_button[i] = NULL;
+		}
 	}
 }
 
@@ -138,6 +151,9 @@ void statement(bool action)
 	{
 		case TOKENIZER_PRINT:
 			print_statement(action);
+			break;
+		case TOKENIZER_GOTO:
+			goto_statement(action);
 			break;
 		case TOKENIZER_GOSUB:
 			gosub_statement(action);
@@ -197,6 +213,7 @@ void end_statement(bool action)
 		accept(TOKENIZER_END);
 		ended = 1;
 		canvas_basic->pushCanvas(10, 90, UPDATE_MODE_GC16);
+		ubasic_removeButtons();
 	}	
 }
 
@@ -258,6 +275,15 @@ void print_statement(bool action)
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
+void goto_statement(bool action)
+{
+	accept(TOKENIZER_GOTO);
+	jump_linenum(tokenizer_num());
+	ubasic_end();
+}
+
+// ------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 void gosub_statement(bool action)
 {
 	int linenum;
@@ -267,17 +293,22 @@ void gosub_statement(bool action)
 
 	if (action)
 	{
+		if (tokenizer_token() == TOKENIZER_ELSE)
+		{
+			accept(TOKENIZER_ELSE);
+			statement(false);
+		}
+		ubasic_end();
+
 		if (gosub_stack_ptr < MAX_GOSUB_STACK_DEPTH)
 		{
-			gosub_stack[gosub_stack_ptr] = linenum;
+			gosub_stack[gosub_stack_ptr] = tokenizer_num();
 			gosub_stack_ptr++;
 			jump_linenum(linenum);
 		}
 		else
 			Serial.println("GOSUB ERROR!");
 	}
-
-	ubasic_end();
 }
 
 // ------------------------------------------------------------------------------
@@ -394,6 +425,7 @@ void if_statement(bool action)
 				else_statement();
 			break;
 	}
+	ubasic_end();
 }
 
 // ------------------------------------------------------------------------------
@@ -407,7 +439,6 @@ void then_statement()
 	// skip ELSE branch
 	if (tokenizer_token() == TOKENIZER_ELSE)
 	{
-		Serial.println("Skipping else...");
 		accept(TOKENIZER_ELSE);
 		statement(false);
 	}
@@ -423,8 +454,11 @@ void else_statement()
 	statement(false);
 
 	// do ELSE branch
-	accept(TOKENIZER_ELSE);
-	statement(true);
+	if (tokenizer_token() == TOKENIZER_ELSE)
+	{
+		accept(TOKENIZER_ELSE);
+		statement(true);
+	}
 }
 
 // ------------------------------------------------------------------------------
